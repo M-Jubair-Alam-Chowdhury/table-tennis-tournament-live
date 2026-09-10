@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>The Match Sheet — Table Tennis Draw (Live)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#123524;
+    --green-light:#1D5B3E;
+    --cream:#F6F1E2;
+    --paper:#FBF8F0;
+    --ink:#17231C;
+    --red:#C1442D;
+    --gold:#C99A3E;
+    --line:#D9CFB3;
+    --muted:#6E6656;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Work Sans',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .display{font-family:'Bebas Neue',sans-serif; letter-spacing:0.02em;}
+  #app{max-width:460px; margin:0 auto; min-height:100vh; background:var(--paper); box-shadow:0 0 40px rgba(0,0,0,0.08);}
+
+  header.top{
+    background:var(--green);
+    color:var(--cream);
+    padding:22px 20px 18px;
+    position:relative;
+    border-bottom:4px solid var(--gold);
+  }
+  header.top h1{margin:0; font-size:38px; line-height:1;}
+  header.top p{margin:4px 0 0; font-size:13px; color:#CFE3D6; max-width:32ch;}
+
+  .role-bar{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:9px 20px; font-size:12px; font-weight:700; letter-spacing:0.03em;
+  }
+  .role-bar.admin{background:var(--gold); color:var(--ink);}
+  .role-bar.guest{background:#EFE6C9; color:var(--ink);}
+  .role-bar .count{font-weight:600; opacity:0.75;}
+
+  .steps{display:flex; gap:6px; padding:14px 20px 0;}
+  .dot{
+    flex:1; height:5px; border-radius:3px; background:var(--line);
+  }
+  .dot.done{background:var(--green-light);}
+  .dot.active{background:var(--red);}
+  .step-label{padding:8px 20px 0; font-size:12px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.08em;}
+
+  main{padding:18px 20px 40px;}
+
+  h2.section{font-size:22px; margin:4px 0 14px; font-family:'Work Sans',sans-serif; font-weight:700;}
+
+  .field{margin-bottom:16px;}
+  .field label{display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:var(--muted);}
+  textarea, input[type=text], input[type=number], select{
+    width:100%; font-family:'Work Sans',sans-serif; font-size:16px;
+    border:1.5px solid var(--line); background:#fff; border-radius:4px;
+    padding:10px 12px; color:var(--ink);
+  }
+  textarea{min-height:130px; resize:vertical;}
+  input[type=number]{width:64px; text-align:center; padding:8px 4px;}
+  .hint{font-size:12px; color:var(--muted); margin-top:6px;}
+
+  .btn{
+    display:inline-block; width:100%; text-align:center;
+    background:var(--green); color:var(--cream); border:none; border-radius:4px;
+    padding:13px 16px; font-size:15px; font-weight:600; cursor:pointer;
+    font-family:'Work Sans',sans-serif;
+  }
+  .btn:active{background:var(--green-light);}
+  .btn.secondary{background:transparent; color:var(--green); border:1.5px solid var(--green);}
+  .btn.danger{background:var(--red);}
+  .btn.small{width:auto; padding:8px 14px; font-size:13px;}
+  .btn[disabled]{opacity:0.4; pointer-events:none;}
+
+  .choice-row{display:flex; gap:10px; margin-bottom:16px;}
+  .choice{
+    flex:1; border:1.5px solid var(--line); border-radius:6px; padding:16px 10px;
+    text-align:center; cursor:pointer; background:#fff;
+  }
+  .choice.picked{border-color:var(--red); background:#FBEFEA;}
+  .choice .glyph{font-size:28px; display:block; margin-bottom:6px;}
+  .choice .name{font-weight:700; font-size:14px;}
+  .choice .desc{font-size:11px; color:var(--muted); margin-top:2px;}
+
+  .pill-list{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 16px;}
+  .pill{
+    background:var(--green); color:var(--cream); font-size:13px; font-weight:600;
+    padding:5px 10px; border-radius:20px;
+  }
+  .pill.warn{background:var(--red);}
+  .pill button{background:none; border:none; color:inherit; margin-left:6px; cursor:pointer; font-weight:700;}
+
+  .constraint-row{display:flex; gap:8px; align-items:center; margin-bottom:10px;}
+  .constraint-row select{flex:1;}
+
+  table.sheet{width:100%; border-collapse:collapse; margin-bottom:18px;}
+  table.sheet th, table.sheet td{
+    border-bottom:1px solid var(--line); padding:9px 6px; font-size:13px; text-align:left;
+  }
+  table.sheet th{font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); font-weight:600;}
+  table.sheet td.num, table.sheet th.num{text-align:center;}
+  table.sheet tr.leader td{font-weight:700; color:var(--green);}
+  table.sheet tr.out td{color:var(--muted);}
+  .out-tag{
+    background:var(--red); color:#fff; font-size:10px; font-weight:700;
+    padding:1px 6px; border-radius:10px; letter-spacing:0.04em; vertical-align:middle;
+  }
+  .elim-banner{
+    background:#FBEFEA; border:1px solid var(--red); color:var(--red);
+    border-radius:6px; padding:10px 12px; font-size:13px; font-weight:600; margin-bottom:14px;
+  }
+
+  .round-title{
+    font-family:'Bebas Neue',sans-serif; font-size:24px; color:var(--green); margin:18px 0 10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .round-badge{
+    background:var(--gold); color:var(--ink); font-family:'Work Sans',sans-serif; font-size:12px;
+    font-weight:700; padding:2px 9px; border-radius:12px;
+  }
+
+  .match-card{
+    border:1.5px solid var(--line); border-radius:6px; padding:14px; margin-bottom:12px; background:#fff;
+  }
+  .match-card.played{border-color:var(--green-light); background:#F3F8F4;}
+  .match-card .vs-row{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .match-card .side{flex:1;}
+  .match-card .side .who{font-weight:700; font-size:15px;}
+  .match-card .side .code{font-size:11px; color:var(--muted);}
+  .match-card .vs{font-family:'Bebas Neue',sans-serif; color:var(--red); font-size:18px; padding:0 6px;}
+  .match-card .score-inputs{display:flex; align-items:center; gap:10px; margin-top:10px; justify-content:center;}
+  .match-card .winner-tag{margin-top:8px; font-size:12px; font-weight:700; color:var(--green-light); text-align:center;}
+  .tbd{color:var(--muted); font-style:italic;}
+
+  .champion-block{
+    text-align:center; padding:30px 16px 26px; background:var(--green); border-radius:8px; color:var(--cream); margin-bottom:20px;
+  }
+  .champion-block .trophy{font-size:38px; line-height:1;}
+  .champion-block .cap{font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); font-weight:700; margin-top:8px;}
+  .champion-block .name{font-family:'Bebas Neue',sans-serif; font-size:42px; margin:4px 0 0; line-height:1.05;}
+  .champion-block .sub{font-size:12px; color:#CFE3D6; margin-top:2px;}
+  .champion-block .final-score{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    margin-top:16px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.2);
+    font-size:13px; color:var(--cream);
+  }
+  .champion-block .final-score .fs-num{
+    font-family:'Bebas Neue',sans-serif; font-size:20px; color:var(--gold); letter-spacing:0.04em;
+  }
+  @keyframes trophyReveal{
+    from{ opacity:0; transform:translateY(8px) scale(0.97); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  .champion-block.reveal{ animation:trophyReveal 0.5s ease-out; }
+  @media (prefers-reduced-motion: reduce){
+    .champion-block.reveal{ animation:none; }
+  }
+
+  .error-box{
+    background:#FBEFEA; border:1.5px solid var(--red); color:var(--red); border-radius:6px;
+    padding:16px; font-weight:600; font-size:14px; margin-bottom:16px;
+  }
+  .muted{color:var(--muted); font-size:13px;}
+
+  /* --- realtime / role additions --- */
+  #app.readonly .choice,
+  #app.readonly .pill button,
+  #app.readonly button,
+  #app.readonly input,
+  #app.readonly select{
+    pointer-events:none; opacity:0.55;
+  }
+  .conn-banner{
+    text-align:center; padding:40px 20px; color:var(--muted); font-size:14px;
+  }
+  .ended-banner{
+    text-align:center; padding:40px 20px;
+  }
+  .ended-banner h2{font-family:'Bebas Neue',sans-serif; font-size:30px; color:var(--red); margin-bottom:8px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ============================================================
+   RENDER LAYER — pure functions of the shared state S.
+   No mutation happens here; every user action sends a message
+   to the server, which is the only thing that changes S.
+   ============================================================ */
+
+let S = null;      // last state received from the server
+let MY_ROLE = null; // 'admin' | 'guest'
+let GUEST_COUNT = 0;
+let HAS_ADMIN = true;
+let SESSION_ENDED = false;
+
+function el(html){ const d=document.createElement("div"); d.innerHTML=html; return d.firstElementChild; }
+
+function stepDots(){
+  const seq = S.mode==="team"
+    ? ["roster","mode","pairing","teamsFormed","play","standings"]
+    : ["roster","mode","play","standings"];
+  const activeIdx = seq.indexOf(
+    ["toomany"].includes(S.step) ? "play" : S.step
+  );
+  return `<div class="steps">` + seq.map((s,i)=>{
+    let cls="dot";
+    if(i<activeIdx) cls+=" done";
+    else if(i===activeIdx) cls+=" active";
+    return `<div class="${cls}"></div>`;
+  }).join("") + `</div>`;
+}
+
+function roleBarHTML(){
+  if(MY_ROLE==="admin"){
+    return `<div class="role-bar admin"><span>🛠️ You're the admin — changes go live</span><span class="count">${GUEST_COUNT} watching</span></div>`;
+  }
+  return `<div class="role-bar guest"><span>👀 Guest view — live, read-only</span><span class="count">${HAS_ADMIN ? "" : "no admin connected"}</span></div>`;
+}
+
+function render(){
+  const app=document.getElementById("app");
+  app.className = MY_ROLE==="guest" ? "readonly" : "";
+
+  if(SESSION_ENDED){
+    app.innerHTML = `
+      <header class="top">
+        <h1 class="display">The Match Sheet</h1>
+        <p>Register your players, draw the fixtures, and run the whole table tennis tournament from one scoresheet.</p>
+      </header>
+      <div class="ended-banner">
+        <h2>Session ended</h2>
+        <p class="muted">The admin left, so this tournament room closed. Reload the page to start (or join) a new one.</p>
+        <div style="height:14px"></div>
+        <button class="btn" onclick="location.reload()">Reload</button>
+      </div>
+    `;
+    return;
+  }
+
+  if(!S){
+    app.innerHTML = `
+      <header class="top">
+        <h1 class="display">The Match Sheet</h1>
+        <p>Register your players, draw the fixtures, and run the whole table tennis tournament from one scoresheet.</p>
+      </header>
+      <div class="conn-banner">Connecting…</div>
+    `;
+    return;
+  }
+
+  let body="";
+  if(S.step==="roster") body=renderRoster();
+  else if(S.step==="mode") body=renderMode();
+  else if(S.step==="pairing") body=renderPairing();
+  else if(S.step==="teamsFormed") body=renderTeamsFormed();
+  else if(S.step==="toomany") body=renderTooMany();
+  else if(S.step==="play") body=renderPlay();
+  else if(S.step==="standings") body=renderStandings();
+
+  app.innerHTML = `
+    <header class="top">
+      <h1 class="display">The Match Sheet</h1>
+      <p>Register your players, draw the fixtures, and run the whole table tennis tournament from one scoresheet.</p>
+    </header>
+    ${roleBarHTML()}
+    ${stepDots()}
+    <main>${body}</main>
+  `;
+}
+
+function renderRoster(){
+  return `
+    <h2 class="section">01 — Roster</h2>
+    <div class="field">
+      <label>Player names, one per line</label>
+      <textarea id="namesInput" placeholder="Alice
+Bob
+Carol
+Dave
+Emma
+Frank"></textarea>
+      <p class="hint">Each player gets a unique code (P1, P2 …) used throughout the draw.</p>
+    </div>
+    <button class="btn" onclick="submitRoster()">Continue</button>
+  `;
+}
+
+function renderMode(){
+  return `
+    <h2 class="section">02 — Format</h2>
+    <p class="muted">${S.names.length} players registered — an even number. Choose how they'll compete.</p>
+    <div class="choice-row">
+      <div class="choice" onclick="pickMode('single')">
+        <span class="glyph">🏓</span>
+        <div class="name">Singles</div>
+        <div class="desc">Every player enters individually</div>
+      </div>
+      <div class="choice" onclick="pickMode('team')">
+        <span class="glyph">🤝</span>
+        <div class="name">Teams</div>
+        <div class="desc">Players paired into 2-person teams</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPairing(){
+  const names=S.names;
+  const opts=n=>`<option value="${n}">${n}</option>`;
+  const rows=S.forbidden.map(([a,b],i)=>`
+      <div class="pill warn">${a} + ${b}<button onclick="removeForbidden(${i})">✕</button></div>
+  `).join("");
+  const errorBlock = S.errorMsg ? `<div class="error-box">${S.errorMsg}</div>` : "";
+  return `
+    <h2 class="section">03 — Pairing rules</h2>
+    <p class="muted">Optional: mark players who must never be teamed together.</p>
+    <div class="constraint-row">
+      <select id="fx">${names.map(opts)}</select>
+      <span class="display" style="font-size:20px;color:var(--red)">×</span>
+      <select id="fy">${names.map(opts)}</select>
+      <button class="btn small secondary" onclick="addForbidden()">Add</button>
+    </div>
+    <div class="pill-list">${rows || '<span class="muted">No constraints added.</span>'}</div>
+    ${errorBlock}
+    <button class="btn" onclick="formTeams()">Form teams &amp; build draw</button>
+  `;
+}
+
+function renderTeamsFormed(){
+  const rows = S.entities.map(code=>`
+    <tr><td>${code}</td><td>${S.labelOf[code]}</td></tr>
+  `).join("");
+  return `
+    <h2 class="section">Teams formed</h2>
+    <p class="muted">No pair below breaks a "never together" rule.</p>
+    <table class="sheet">
+      <thead><tr><th>Code</th><th>Team</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <button class="btn" onclick="confirmTeamsAndDraw()">Continue to draw</button>
+    <div style="height:10px"></div>
+    <button class="btn secondary" onclick="goToPairing()">Reshuffle teams</button>
+  `;
+}
+
+function renderTooMany(){
+  const word = S.mode==="team" ? "teams" : "single players";
+  return `
+    <h2 class="section">Draw not created</h2>
+    <div class="error-box">Way too many ${word} — ${S.entities.length} entrants would need ${S.matchInfo.matches} matches, over the 21-match limit.</div>
+    <button class="btn secondary" onclick="doReset()">Start over</button>
+  `;
+}
+
+function matchCardHTML(m, mi){
+  const labelA = m.a ? S.labelOf[m.a] : null;
+  const labelB = m.b ? S.labelOf[m.b] : null;
+  if(!m.a || !m.b){
+    return `<div class="match-card"><div class="vs-row">
+      <div class="side"><div class="who tbd">To be decided</div></div>
+      <div class="vs">vs</div>
+      <div class="side" style="text-align:right"><div class="who tbd">To be decided</div></div>
+    </div></div>`;
+  }
+  if(m.played){
+    return `<div class="match-card played"><div class="vs-row">
+      <div class="side"><div class="who">${labelA}</div><div class="code">${m.a}</div></div>
+      <div class="vs">${m.scoreA} – ${m.scoreB}</div>
+      <div class="side" style="text-align:right"><div class="who">${labelB}</div><div class="code">${m.b}</div></div>
+    </div><div class="winner-tag">Winner: ${S.labelOf[m.winner]}</div></div>`;
+  }
+  return `<div class="match-card"><div class="vs-row">
+      <div class="side"><div class="who">${labelA}</div><div class="code">${m.a}</div></div>
+      <div class="vs">vs</div>
+      <div class="side" style="text-align:right"><div class="who">${labelB}</div><div class="code">${m.b}</div></div>
+    </div>
+    <div class="score-inputs">
+      <input type="number" id="sa${mi}" placeholder="0">
+      <span class="display" style="font-size:18px">–</span>
+      <input type="number" id="sb${mi}" placeholder="0">
+      <button class="btn small" onclick="saveScore(${mi}, parseInt(document.getElementById('sa${mi}').value), parseInt(document.getElementById('sb${mi}').value))">Save</button>
+    </div>
+  </div>`;
+}
+
+function eliminatedSoFar(sched, uptoIndex){
+  const out=new Set();
+  for(let i=0;i<uptoIndex;i++){
+    const r=sched.rounds[i];
+    if(r && r.eliminated) r.eliminated.forEach(c=>out.add(c));
+  }
+  return out;
+}
+
+function miniStandingsHTML(){
+  const st=standingsOf(S.table, S.entities);
+  const outSet=eliminatedSoFar(S.schedule, S.roundIndex);
+  const rows=st.map((t,i)=>`
+    <tr class="${outSet.has(t.code)?'out':''}">
+      <td class="num">${i+1}</td>
+      <td>${S.labelOf[t.code]}${outSet.has(t.code)?' <span class="out-tag">OUT</span>':''}</td>
+      <td class="num">${t.wins}</td>
+      <td class="num">${t.losses}</td>
+      <td class="num">${t.diff>0?'+':''}${t.diff}</td>
+    </tr>
+  `).join("");
+  return `
+    <div class="round-title" style="font-size:18px; margin-top:24px;">Standings so far</div>
+    <table class="sheet">
+      <thead><tr><th class="num">#</th><th>Entrant</th><th class="num">W</th><th class="num">L</th><th class="num">Diff</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function renderPlay(){
+  const sched=S.schedule, round=sched.rounds[S.roundIndex];
+  const kindLabel = sched.kind==="rr" ? (round[0]&&round[0].isFinal ? "Final" : "Round robin") : sched.kind==="elim" ? "Knockout" : (round[0]&&round[0].isFinal ? "Final" : (S.roundIndex<sched.k ? "Knockout phase" : "Round robin phase"));
+  const cards = round.map((m,mi)=>matchCardHTML(m,mi)).join("");
+  const complete = round.every(m=>m.played);
+
+  const prevRound = S.roundIndex>0 ? sched.rounds[S.roundIndex-1] : null;
+  const eliminatedHere = prevRound && prevRound.eliminated ? prevRound.eliminated : [];
+  const eliminationBanner = eliminatedHere.length ? `
+    <div class="elim-banner">Eliminated after Round ${S.roundIndex}: ${eliminatedHere.map(c=>S.labelOf[c]).join(", ")}</div>
+  ` : "";
+
+  return `
+    <h2 class="section">04 — Draw &amp; Play</h2>
+    <div class="round-title">Round ${S.roundIndex+1} <span class="round-badge">${kindLabel}</span></div>
+    ${eliminationBanner}
+    ${cards}
+    <button class="btn" ${complete?"":"disabled"} onclick="continueTournament()">
+      ${complete ? "Continue" : "Enter all scores to continue"}
+    </button>
+    ${miniStandingsHTML()}
+  `;
+}
+
+function renderStandings(){
+  const st=standingsOf(S.table, S.entities);
+  const championCode = S.champion || st[0].code;
+
+  let finalScoreHTML = "";
+  const sched=S.schedule;
+  if(sched && (sched.kind==="elim" || sched.kind==="hybrid" || sched.kind==="rr")){
+    const lastRound = sched.rounds[sched.rounds.length-1];
+    const finalMatch = lastRound && lastRound[lastRound.length-1];
+    if(finalMatch && finalMatch.played){
+      finalScoreHTML = `
+        <div class="final-score">
+          <span>${S.labelOf[finalMatch.a]}</span>
+          <span class="fs-num">${finalMatch.scoreA} – ${finalMatch.scoreB}</span>
+          <span>${S.labelOf[finalMatch.b]}</span>
+        </div>`;
+    }
+  }
+
+  const rows=st.map((t,i)=>`
+    <tr class="${t.code===championCode?'leader':''}">
+      <td class="num">${i+1}</td>
+      <td>${S.labelOf[t.code]}<br><span class="muted">${t.code}</span></td>
+      <td class="num">${t.wins}</td>
+      <td class="num">${t.losses}</td>
+      <td class="num">${t.diff>0?'+':''}${t.diff}</td>
+    </tr>
+  `).join("");
+  return `
+    <h2 class="section">05 — Result</h2>
+    <div class="champion-block reveal">
+      <div class="trophy">🏆</div>
+      <div class="cap">Congratulations</div>
+      <div class="name">${S.labelOf[championCode]}</div>
+      <div class="sub">Tournament Champion</div>
+      ${finalScoreHTML}
+    </div>
+    <table class="sheet">
+      <thead><tr><th class="num">#</th><th>Entrant</th><th class="num">W</th><th class="num">L</th><th class="num">Diff</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <button class="btn secondary" onclick="doReset()">Start a new tournament</button>
+  `;
+}
+
+// standingsOf needs to run client-side too, for display — pure/no mutation.
+function standingsOf(table, codes){
+  const compareTeams=(t1,t2)=>{
+    if(t1.wins!==t2.wins) return t2.wins-t1.wins;
+    if(t1.losses!==t2.losses) return t1.losses-t2.losses;
+    return t2.diff-t1.diff;
+  };
+  return codes.map(c=>table[c]).sort(compareTeams);
+}
+
+/* ============================================================
+   NETWORK LAYER — every user action is just a message to the
+   server. The server is the only thing that mutates state.
+   ============================================================ */
+
+let ws;
+function connect(){
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  ws = new WebSocket(proto + "//" + location.host);
+
+  ws.addEventListener("message", (ev) => {
+    const msg = JSON.parse(ev.data);
+    if(msg.type==="welcome"){
+      MY_ROLE = msg.role;
+      S = msg.state;
+      GUEST_COUNT = msg.guestCount;
+      HAS_ADMIN = msg.hasAdmin;
+      render();
+    } else if(msg.type==="state"){
+      S = msg.state;
+      GUEST_COUNT = msg.guestCount;
+      HAS_ADMIN = msg.hasAdmin;
+      render();
+    } else if(msg.type==="error"){
+      alert(msg.message);
+    } else if(msg.type==="sessionEnded"){
+      SESSION_ENDED = true;
+      render();
+    }
+  });
+
+  ws.addEventListener("close", () => {
+    if(!SESSION_ENDED){
+      S = null;
+      render();
+      setTimeout(connect, 1500); // simple auto-retry
+    }
+  });
+}
+connect();
+
+function sendAction(type, payload){
+  if(ws.readyState!==ws.OPEN) return;
+  ws.send(JSON.stringify({type, payload}));
+}
+
+/* ---- action senders — same names as the old onclick handlers ---- */
+
+function submitRoster(){
+  const raw=document.getElementById("namesInput").value;
+  sendAction("submitRoster", {raw});
+}
+function pickMode(mode){ sendAction("pickMode", {mode}); }
+function addForbidden(){
+  const x=document.getElementById("fx").value, y=document.getElementById("fy").value;
+  sendAction("addForbidden", {x,y});
+}
+function removeForbidden(i){ sendAction("removeForbidden", {index:i}); }
+function formTeams(){ sendAction("formTeams", {}); }
+function goToPairing(){ sendAction("goToPairing", {}); }
+function confirmTeamsAndDraw(){ sendAction("confirmTeamsAndDraw", {}); }
+function draftScore(mi, which, value){ sendAction("draftScore", {mi, which, value}); }
+function saveScore(mi, sa, sb){ sendAction("saveScore", {mi, sa, sb}); }
+function continueTournament(){ sendAction("continueTournament", {}); }
+function doReset(){ sendAction("reset", {}); }
+
+render();
+</script>
+</body>
+</html>
