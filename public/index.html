@@ -544,7 +544,19 @@ function standingsOf(table, codes){
   };
   return codes.map(c=>table[c]).sort(compareTeams);
 }
+function eliminatedSoFar(sched, uptoIndex){
+  const out=new Set();
 
+  for(let i=0;i<uptoIndex;i++){
+    const r=sched.rounds[i];
+
+    if(r && r.eliminated){
+      r.eliminated.forEach(c=>out.add(c));
+    }
+  }
+
+  return out;
+}
 /* ============================================================
    NETWORK LAYER — every user action is just a message to the
    server. The server is the only thing that mutates state.
