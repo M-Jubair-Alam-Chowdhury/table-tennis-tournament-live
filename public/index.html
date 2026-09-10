@@ -414,15 +414,25 @@ function eliminatedSoFar(sched, uptoIndex){
 }
 
 function miniStandingsHTML(){
-  const st=standingsOf(S.table, S.entities);
-  const outSet=eliminatedSoFar(S.schedule, S.roundIndex);
+  const st = standingsOf(S.table, S.entities);
 
-  const rows=st.map((t,i)=>`
-    <tr class="${outSet.has(t.code)?'out':''}">
+  const sched = S.schedule;
+  const prevRound = S.roundIndex > 0
+    ? sched.rounds[S.roundIndex - 1]
+    : null;
+
+  const eliminated = prevRound && prevRound.eliminated
+    ? new Set(prevRound.eliminated)
+    : new Set();
+
+  const rows = st.map((t,i) => `
+    <tr class="${eliminated.has(t.code) ? 'out' : ''}">
       <td class="num">${i+1}</td>
       <td>
         ${S.labelOf[t.code]}
-        ${outSet.has(t.code)?' <span class="out-tag">OUT</span>':''}
+        ${eliminated.has(t.code)
+          ? ' <span class="out-tag">OUT</span>'
+          : ''}
       </td>
       <td class="num">${t.wins}</td>
       <td class="num">${t.losses}</td>
@@ -431,7 +441,10 @@ function miniStandingsHTML(){
   `).join("");
 
   return `
-    <div class="round-title" style="font-size:18px; margin-top:24px;">Standings so far</div>
+    <div class="round-title" style="font-size:18px; margin-top:24px;">
+      Standings so far
+    </div>
+
     <table class="sheet">
       <thead>
         <tr>
@@ -445,8 +458,7 @@ function miniStandingsHTML(){
       <tbody>${rows}</tbody>
     </table>
   `;
-}
-function renderPlay(){
+}function renderPlay(){
   const sched = S.schedule;
   const round = sched.rounds[S.roundIndex];
 
