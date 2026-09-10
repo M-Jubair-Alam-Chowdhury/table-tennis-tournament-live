@@ -407,24 +407,36 @@ function eliminatedSoFar(sched, uptoIndex){
 function miniStandingsHTML(){
   const st=standingsOf(S.table, S.entities);
   const outSet=eliminatedSoFar(S.schedule, S.roundIndex);
+
   const rows=st.map((t,i)=>`
     <tr class="${outSet.has(t.code)?'out':''}">
       <td class="num">${i+1}</td>
-      <td>${S.labelOf[t.code]}${outSet.has(t.code)?' <span class="out-tag">OUT</span>':''}</td>
+      <td>
+        ${S.labelOf[t.code]}
+        ${outSet.has(t.code)?' <span class="out-tag">OUT</span>':''}
+      </td>
       <td class="num">${t.wins}</td>
       <td class="num">${t.losses}</td>
       <td class="num">${t.diff>0?'+':''}${t.diff}</td>
     </tr>
   `).join("");
+
   return `
     <div class="round-title" style="font-size:18px; margin-top:24px;">Standings so far</div>
     <table class="sheet">
-      <thead><tr><th class="num">#</th><th>Entrant</th><th class="num">W</th><th class="num">L</th><th class="num">Diff</th></tr></thead>
+      <thead>
+        <tr>
+          <th class="num">#</th>
+          <th>Entrant</th>
+          <th class="num">W</th>
+          <th class="num">L</th>
+          <th class="num">Diff</th>
+        </tr>
+      </thead>
       <tbody>${rows}</tbody>
     </table>
   `;
 }
-
 function renderPlay(){
   const sched = S.schedule;
   const round = sched.rounds[S.roundIndex];
