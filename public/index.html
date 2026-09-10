@@ -376,6 +376,17 @@ function renderTooMany(){
 function matchCardHTML(m, mi){
   const labelA = m.a ? S.labelOf[m.a] : null;
   const labelB = m.b ? S.labelOf[m.b] : null;
+
+  const outSet = eliminatedSoFar(S.schedule, S.roundIndex);
+
+  const nameA = m.a
+    ? `${labelA}${outSet.has(m.a) ? ' <span class="out-tag">OUT</span>' : ''}`
+    : null;
+
+  const nameB = m.b
+    ? `${labelB}${outSet.has(m.b) ? ' <span class="out-tag">OUT</span>' : ''}`
+    : null;
+
   if(!m.a || !m.b){
     return `<div class="match-card"><div class="vs-row">
       <div class="side"><div class="who tbd">To be decided</div></div>
@@ -383,17 +394,19 @@ function matchCardHTML(m, mi){
       <div class="side" style="text-align:right"><div class="who tbd">To be decided</div></div>
     </div></div>`;
   }
+
   if(m.played){
     return `<div class="match-card played"><div class="vs-row">
-      <div class="side"><div class="who">${labelA}</div><div class="code">${m.a}</div></div>
+      <div class="side"><div class="who">${nameA}</div><div class="code">${m.a}</div></div>
       <div class="vs">${m.scoreA} – ${m.scoreB}</div>
-      <div class="side" style="text-align:right"><div class="who">${labelB}</div><div class="code">${m.b}</div></div>
+      <div class="side" style="text-align:right"><div class="who">${nameB}</div><div class="code">${m.b}</div></div>
     </div><div class="winner-tag">Winner: ${S.labelOf[m.winner]}</div></div>`;
   }
+
   return `<div class="match-card"><div class="vs-row">
-      <div class="side"><div class="who">${labelA}</div><div class="code">${m.a}</div></div>
+      <div class="side"><div class="who">${nameA}</div><div class="code">${m.a}</div></div>
       <div class="vs">vs</div>
-      <div class="side" style="text-align:right"><div class="who">${labelB}</div><div class="code">${m.b}</div></div>
+      <div class="side" style="text-align:right"><div class="who">${nameB}</div><div class="code">${m.b}</div></div>
     </div>
     <div class="score-inputs">
       <input type="number" id="sa${mi}" placeholder="0">
@@ -403,7 +416,6 @@ function matchCardHTML(m, mi){
     </div>
   </div>`;
 }
-
 function eliminatedSoFar(sched, uptoIndex){
   const out=new Set();
   for(let i=0;i<uptoIndex;i++){
