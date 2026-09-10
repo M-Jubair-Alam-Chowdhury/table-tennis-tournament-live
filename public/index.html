@@ -426,8 +426,37 @@ function miniStandingsHTML(){
 }
 
 function renderPlay(){
-  const sched=S.schedule, round=sched.rounds[S.roundIndex];
-  const kindLabel = sched.kind==="rr" ? (round[0]&&round[0].isFinal ? "Final" : "Round robin") : sched.kind==="elim" ? "Knockout" : (round[0]&&round[0].isFinal ? "Final" : (S.roundIndex<sched.k ? "Knockout phase" : "Round robin phase"));
+  const sched = S.schedule;
+  const round = sched.rounds[S.roundIndex];
+
+  let kindLabel = "Round robin";
+
+  if(round[0] && round[0].isFinal){
+    kindLabel = "Final";
+  } else if(sched.kind === "elim"){
+    const playersInRound = round.length * 2;
+
+    if(playersInRound === 32) kindLabel = "Round of 32";
+    else if(playersInRound === 16) kindLabel = "Round of 16";
+    else if(playersInRound === 8) kindLabel = "Quarterfinals";
+    else if(playersInRound === 4) kindLabel = "Semifinals";
+    else if(playersInRound === 2) kindLabel = "Final";
+    else kindLabel = "Knockout";
+  } else if(sched.kind === "hybrid"){
+    if(S.roundIndex < sched.k){
+      const playersInRound = round.length * 2;
+
+      if(playersInRound === 32) kindLabel = "Round of 32";
+      else if(playersInRound === 16) kindLabel = "Round of 16";
+      else if(playersInRound === 8) kindLabel = "Quarterfinals";
+      else if(playersInRound === 4) kindLabel = "Semifinals";
+      else if(playersInRound === 2) kindLabel = "Final";
+      else kindLabel = "Knockout phase";
+    } else {
+      kindLabel = "Round robin phase";
+    }
+  }
+
   const cards = round.map((m,mi)=>matchCardHTML(m,mi)).join("");
   const complete = round.every(m=>m.played);
 
