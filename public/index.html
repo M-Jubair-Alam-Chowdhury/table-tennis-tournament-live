@@ -397,9 +397,9 @@ function matchCardHTML(m, mi){
       <div class="side" style="text-align:right"><div class="who">${labelB}</div><div class="code">${m.b}</div></div>
     </div>
     <div class="score-inputs">
-      <input type="number" id="sa${mi}" placeholder="0" value="${m.draftA!=null?m.draftA:''}" oninput="draftScore(${mi},'a',this.value)">
+      <input type="number" id="sa${mi}" placeholder="0">
       <span class="display" style="font-size:18px">–</span>
-      <input type="number" id="sb${mi}" placeholder="0" value="${m.draftB!=null?m.draftB:''}" oninput="draftScore(${mi},'b',this.value)">
+      <input type="number" id="sb${mi}" placeholder="0">
       <button class="btn small" onclick="saveScore(${mi}, parseInt(document.getElementById('sa${mi}').value), parseInt(document.getElementById('sb${mi}').value))">Save</button>
     </div>
   </div>`;
@@ -609,7 +609,6 @@ function removeForbidden(i){ sendAction("removeForbidden", {index:i}); }
 function formTeams(){ sendAction("formTeams", {}); }
 function goToPairing(){ sendAction("goToPairing", {}); }
 function confirmTeamsAndDraw(){ sendAction("confirmTeamsAndDraw", {}); }
-function draftScore(mi, which, value){ sendAction("draftScore", {mi, which, value}); }
 function saveScore(mi, sa, sb){ sendAction("saveScore", {mi, sa, sb}); }
 function continueTournament(){ sendAction("continueTournament", {}); }
 function doReset(){ sendAction("reset", {}); }
